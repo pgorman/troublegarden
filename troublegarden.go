@@ -3,10 +3,10 @@ package main
 
 import (
 	"flag"
-	"html/template"
+//	"html/template"
 	"log"
 	"net/http"
-	"time"
+//	"time"
 )
 
 type session struct {
@@ -14,32 +14,35 @@ type session struct {
 	email string
 	name string
 	cookie string
-	expires Time
+//	expires Time
 }
 
 var sessions = make([]session, 0, 10)
 
+func handleHome(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello.\n"))
+}
+
 func main() {
-	html := flag.String("html", "/var/www/html/troublegarden", "Specify the root path to HTML templates.")
+//	html := flag.String("html", "/var/www/html/troublegarden", "Specify the root path to HTML templates.")
 	ip := flag.String("ip", "", "Specify the IP address on which to listen. By default, listen on all interfaces.")
 	port := flag.String("port", "9000", "Specify the TCP port on which to listen for incoming connections.")
-	sqlite := flag.String("sqlite", "/var/lib/troublegarden.db", "Specify the path to an SQLite3 database where we save messages.")
+//	sqlite := flag.String("sqlite", "/var/lib/troublegarden.db", "Specify the path to an SQLite3 database where we save messages.")
 	tlscert := flag.String("tlscert", "/etc/ssl/certs/ssl-cert-snakeoil.pem", "Specify the path the the TLS certificate file.")
 	tlskey := flag.String("tlskey", "/etc/ssl/private/ssl-cert-snakeoil.key", "Specify the path to the TLS key file.")
 	verbose := flag.Bool("v", false, "Enable verbose logging.")
 	flag.Parse()
 
 	http.HandleFunc("/", handleHome)
-	http.HandleFunc("/login", handleLogin)
+//	http.HandleFunc("/login", handleLogin)
 
-	var l net.Listener
 	if *tlskey != "" && *tlscert != "" {
-		l, err = http.ListenAndServeTLS(*ip+":"+*port, *tlscert, *tlskey, nil)
+		err := http.ListenAndServeTLS(*ip+":"+*port, *tlscert, *tlskey, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
 	} else {
-		l, err = net.ListenAndServe(*ip+":"+*port, nil)
+		err := http.ListenAndServe(*ip+":"+*port, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -47,5 +50,4 @@ func main() {
 	if *verbose {
 		log.Println("Trouble Garden listening on", *ip+":"+*port)
 	}
-	defer l.Close()
 }
