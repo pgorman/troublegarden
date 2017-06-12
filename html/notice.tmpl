@@ -1,3 +1,4 @@
-{{template "header"}}
+{{define "notice"}}
 <p>{{.}}</p>
-{{template "footer"}}
+{{template "footer" .}}
+{{end}}

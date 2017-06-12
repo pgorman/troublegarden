@@ -14,15 +14,33 @@ type session struct {
 	email string
 	name string
 	cookie string
-	expires Time
+	expires time.Time
 }
 
 var sessions = make([]session, 0, 10)
+var html *string
+var templates *template.Template
 
 func handleNotice(w http.ResponseWriter, r *http.Request) {
-	s := "This is important!"
-	t, _ := template.ParseFiles("notice.tmpl")
-	t.Execute(w, s)
+/*
+	type pageData struct {
+		Title  string
+		Notice string
+	}
+	p := pageData{
+		Title:  "Notice",
+		Notice: "This is important!",
+	}
+	err := templates.ExecuteTemplate(w, "notice")
+*/
+	err := templates.ExecuteTemplate(w, "header", "Notice")
+	if err != nil {
+		log.Println(err)
+	}
+	err = templates.ExecuteTemplate(w, "notice", "This is the notice text.")
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func handleHome(w http.ResponseWriter, r *http.Request) {
@@ -33,11 +51,11 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	cookie, _ := r.Cookie("sessionid")
 	for _, s := range sessions {
 		if s.cookie == cookie.Value {
-			t, _ := template.ParseFiles("notice.tmpl")
-			t.Execute(w, "Welcome!")
+			templates.Execute(w, "Welcome!")
 			return
 		}
 	}
+/*
 	type user struct{
 		username  string
 		password  string
@@ -63,17 +81,20 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	t, _ := template.ParseFiles("login.tmpl")
 	t.Execute(w, nil)
+*/
 }
 
 func main() {
-	html := flag.String("html", "/var/www/html/troublegarden", "Specify the root path to HTML templates.")
+	html = flag.String("html", "/var/www/html/troublegarden", "Specify the root path to HTML templates.")
 	ip := flag.String("ip", "", "Specify the IP address on which to listen. By default, listen on all interfaces.")
 	port := flag.String("port", "9000", "Specify the TCP port on which to listen for incoming connections.")
-	sqlite := flag.String("sqlite", "/var/lib/troublegarden.db", "Specify the path to an SQLite3 database where we save messages.")
+//	sqlite := flag.String("sqlite", "/var/lib/troublegarden.db", "Specify the path to an SQLite3 database where we save messages.")
 	tlscert := flag.String("tlscert", "/etc/ssl/certs/ssl-cert-snakeoil.pem", "Specify the path the the TLS certificate file.")
 	tlskey := flag.String("tlskey", "/etc/ssl/private/ssl-cert-snakeoil.key", "Specify the path to the TLS key file.")
 	verbose := flag.Bool("v", false, "Enable verbose logging.")
 	flag.Parse()
+
+	templates = template.Must(template.ParseGlob(*html + "/*"))
 
 	http.HandleFunc("/", handleHome)
 	http.HandleFunc("/login", handleLogin)
